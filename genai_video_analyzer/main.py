@@ -25,6 +25,10 @@ def setup_logging(verbose: bool = False) -> None:
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
+    
+    # Suppress noisy third-party logs
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
 @click.command()
@@ -38,14 +42,14 @@ def setup_logging(verbose: bool = False) -> None:
 @click.option(
     "--llm-model",
     "-m",
-    default="gemma2:2b",
-    help="LLM model to use for frame captioning (default: gemma2:2b)",
+    default="llava:13b",
+    help="LLM model to use for frame captioning (default: llava:13b)",
 )
 @click.option(
     "--summary-model",
     "-s",
-    default="gpt-4",
-    help="LLM model to use for final summary (default: gpt-4)",
+    default="gemma3:12b",
+    help="LLM model to use for final summary (default: gemma3:12b)",
 )
 @click.option(
     "--no-audio",
