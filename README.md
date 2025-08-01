@@ -130,7 +130,7 @@ uv run video-summarizer --help
 - `-s, --summary-model`: Text model for final summary (default: gemma3:12b)
 - `--no-audio`: Skip audio transcription
 - `--no-frames`: Skip frame analysis
-- `-t, --threshold`: Scene detection threshold (default: 60.0)
+- `-t, --threshold`: Scene detection threshold (default: 50.0)
 - `-v, --verbose`: Enable verbose logging
 
 ### Examples
@@ -269,9 +269,9 @@ ffmpeg -i video.mp4 -t 10 -vn -acodec pcm_s16le test_audio.wav
 1. **Use GPU acceleration** for faster processing
 2. **Pre-download models** to avoid delays during analysis
 3. **Adjust scene threshold** to control number of frames analyzed:
-   - **Home videos/casual footage**: Use higher thresholds (60.0-80.0) to avoid over-segmentation
+   - **Home videos/casual footage**: Use higher thresholds (50.0-80.0) to avoid over-segmentation
    - **Professional content**: Lower thresholds (20.0-40.0) may work better
-   - **Default**: 60.0 provides good balance for most content
+   - **Default**: 50.0 provides good balance for most content
 4. **Use appropriate model sizes** based on available hardware
 
 ## Development
