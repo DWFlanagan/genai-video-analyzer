@@ -61,7 +61,21 @@ brew install ffmpeg
 uv sync
 ```
 
-### 4. Install AI Models
+### 4. RTX 5080 GPU Support
+
+If you have an RTX 5080 GPU, PyTorch requires special configuration for compatibility:
+
+```bash
+# Install PyTorch with automatic backend selection (recommended)
+uv pip install torch torchvision torchaudio --torch-backend=auto
+
+# Or run the automated setup script
+./setup_pytorch_rtx5080.sh
+```
+
+**Note:** The `--torch-backend=auto` flag automatically detects your RTX 5080 and installs the compatible PyTorch version with CUDA 12.8 support.
+
+### 5. Install AI Models
 
 **Install Ollama:**
 ```bash
@@ -116,7 +130,7 @@ uv run video-summarizer --help
 - `-s, --summary-model`: Text model for final summary (default: gemma3:12b)
 - `--no-audio`: Skip audio transcription
 - `--no-frames`: Skip frame analysis
-- `-t, --threshold`: Scene detection threshold (default: 30.0)
+- `-t, --threshold`: Scene detection threshold (default: 60.0)
 - `-v, --verbose`: Enable verbose logging
 
 ### Examples
@@ -128,8 +142,8 @@ uv run video-summarizer "video.mp4" --no-frames
 # Visual-only analysis (no audio transcription)
 uv run video-summarizer "video.mp4" --no-audio
 
-# Adjust scene detection sensitivity
-uv run video-summarizer "video.mp4" -t 20.0
+# Adjust scene detection sensitivity (higher = fewer scenes)
+uv run video-summarizer "video.mp4" -t 80.0
 
 # Verbose output for debugging
 uv run video-summarizer "video.mp4" -v
@@ -202,7 +216,22 @@ ollama ps
 
 ### Common Issues
 
-**1. "Unknown model" errors:**
+**1. RTX 5080 CUDA compatibility errors:**
+```bash
+# Error: NVIDIA GeForce RTX 5080 with CUDA capability sm_120 is not compatible
+# Error: CUDA error: no kernel image is available for execution on the device
+
+# Solution: Use automatic PyTorch backend selection
+uv pip install torch torchvision torchaudio --torch-backend=auto
+
+# Or run the setup script:
+./setup_pytorch_rtx5080.sh
+
+# Verify the fix:
+python -c "import torch; print('CUDA available:', torch.cuda.is_available()); print('Device:', torch.cuda.get_device_name(0))"
+```
+
+**2. "Unknown model" errors:**
 ```bash
 # Check available models
 ollama list
@@ -239,7 +268,10 @@ ffmpeg -i video.mp4 -t 10 -vn -acodec pcm_s16le test_audio.wav
 
 1. **Use GPU acceleration** for faster processing
 2. **Pre-download models** to avoid delays during analysis
-3. **Adjust scene threshold** to control number of frames analyzed
+3. **Adjust scene threshold** to control number of frames analyzed:
+   - **Home videos/casual footage**: Use higher thresholds (60.0-80.0) to avoid over-segmentation
+   - **Professional content**: Lower thresholds (20.0-40.0) may work better
+   - **Default**: 60.0 provides good balance for most content
 4. **Use appropriate model sizes** based on available hardware
 
 ## Development
@@ -251,6 +283,10 @@ genai_video_analyzer/
 ├── __init__.py
 ├── main.py              # CLI entry point
 ├── video_analyzer.py    # Core analysis logic
+├── audio_transcriber.py # Audio transcription with Whisper
+├── frame_captioner.py   # Frame captioning with LLaVA
+├── scene_detector.py    # Scene detection logic
+├── summary_generator.py # Summary generation with LLMs
 └── utils.py            # Utility functions
 
 tests/

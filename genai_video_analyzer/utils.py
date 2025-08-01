@@ -19,7 +19,6 @@ def check_dependencies() -> bool:
     """
     dependencies = [
         ("llm", "llm CLI tool"),
-        ("whisper", "Whisper for audio transcription"),
         ("ffmpeg", "FFmpeg for video processing"),
     ]
 
@@ -27,6 +26,13 @@ def check_dependencies() -> bool:
     for cmd, desc in dependencies:
         if not check_command_exists(cmd):
             missing.append(f"- {desc} (command: {cmd})")
+
+    # Check if whisper Python package is available
+    try:
+        import whisper
+        logger.debug("Whisper Python package found")
+    except ImportError:
+        missing.append("- Whisper Python package (pip install openai-whisper)")
 
     if missing:
         logger.error("Missing required dependencies:")
@@ -40,7 +46,7 @@ def check_dependencies() -> bool:
 
 def check_command_exists(command: str) -> bool:
     """
-    Check if a command exists in the system PATH.
+    Check if a command exists in the system PATH or as a file.
 
     Args:
         command: Command name to check
@@ -49,8 +55,13 @@ def check_command_exists(command: str) -> bool:
         True if command exists, False otherwise
     """
     try:
-        subprocess.run(["which", command], check=True, capture_output=True, text=True)
-        return True
+        # Check if it's a file path first
+        if "/" in command:
+            return Path(command).exists()
+        else:
+            # Check in PATH
+            subprocess.run(["which", command], check=True, capture_output=True, text=True)
+            return True
     except subprocess.CalledProcessError:
         return False
 

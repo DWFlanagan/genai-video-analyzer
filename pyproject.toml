@@ -26,7 +26,13 @@ dependencies = [
     "pillow>=10.0.0",
     "click>=8.1.0",
     "llm-ollama>=0.13.0",
+    # PyTorch with RTX 5080 support - use uv pip install with --torch-backend=auto
+    # "torch", "torchvision", "torchaudio" - installed separately
 ]
+
+# [tool.uv.sources]
+# Note: PyTorch packages are installed using: uv pip install torch torchvision torchaudio --torch-backend=auto
+# This automatically detects RTX 5080 and installs compatible CUDA 12.8 packages
 
 [project.optional-dependencies]
 dev = [

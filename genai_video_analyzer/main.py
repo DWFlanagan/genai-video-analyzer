@@ -64,8 +64,8 @@ def setup_logging(verbose: bool = False) -> None:
 @click.option(
     "--threshold",
     "-t",
-    default=30.0,
-    help="Scene detection threshold (default: 30.0)",
+    default=60.0,
+    help="Scene detection threshold (default: 60.0)",
 )
 @click.option(
     "--verbose",

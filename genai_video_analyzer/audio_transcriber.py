@@ -46,41 +46,55 @@ class AudioTranscriber:
                 logger.warning(f"Could not parse existing timestamped transcript: {e}")
 
         try:
-            # Use Whisper CLI with GPU auto-detection for better quality
-            logger.info("Transcribing audio with Whisper CLI...")
+            # Use Whisper Python API directly for better reliability
+            logger.info("Transcribing audio with Whisper API...")
             
-            # Check if GPU is available
+            import whisper
             import torch
-            device = "cuda" if torch.cuda.is_available() else "cpu"
+            import os
+            import warnings
+            import logging
+            
+            # Suppress verbose debug logs from dependencies
+            logging.getLogger('numba').setLevel(logging.WARNING)
+            logging.getLogger('whisper').setLevel(logging.WARNING)
+            os.environ['NUMBA_DISABLE_JIT'] = '0'  # Keep JIT enabled but reduce logging
+            
+            # Filter out Triton kernel warnings (they still work, just slower)
+            warnings.filterwarnings("ignore", message="Failed to launch Triton kernels")
+            
+            # Enforce GPU-only operation
+            if not torch.cuda.is_available():
+                raise RuntimeError("CUDA is not available. GPU acceleration is required.")
+            
+            device = "cuda"
             logger.info(f"Using device for Whisper: {device}")
             
-            # Run whisper command with device auto-detection and word timestamps
-            # Use turbo model for better coverage and detail, write to file for reliable parsing
-            vtt_file = output_dir / f"{video_path.stem}.vtt"
-            cmd = [
-                "whisper",
-                str(video_path),
-                "--model", "turbo",
-                "--device", device,
-                "--output_format", "vtt",
-                "--language", "en",
-                "--word_timestamps", "True",
-                "--output_dir", str(output_dir)
-            ]
+            # Load the Whisper model on GPU
+            logger.info("Loading Whisper turbo model on GPU...")
+            model = whisper.load_model("turbo", device=device)
             
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True
+            # Transcribe the audio
+            logger.info("Starting transcription...")
+            result = model.transcribe(
+                str(video_path),
+                language="english",
+                word_timestamps=True,
+                verbose=False
             )
             
-            logger.debug(f"Whisper command completed")
+            logger.info(f"Transcription completed. Found {len(result['segments'])} segments")
             
-            # Parse VTT file (more reliable than stdout parsing)
-            if vtt_file.exists():
-                timestamped_segments = self._parse_vtt_file(vtt_file)
-                
+            # Convert Whisper segments to our format
+            timestamped_segments = []
+            for segment in result['segments']:
+                start_time = segment['start']
+                end_time = segment['end']
+                text = segment['text'].strip()
+                if text:  # Only add non-empty segments
+                    timestamped_segments.append((start_time, end_time, text))
+            
+            if timestamped_segments:
                 # Save timestamped transcript in our format
                 with open(timestamped_transcript_file, "w") as f:
                     for start_time, end_time, text in timestamped_segments:
@@ -92,19 +106,18 @@ class AudioTranscriber:
                 # Store for timeline creation
                 self.timestamped_segments = timestamped_segments
                 
-                # Create plain text transcript for summary generation (don't save to file)
+                # Create plain text transcript for summary generation
                 full_text = " ".join([text for _, _, text in timestamped_segments])
                 
                 logger.info(f"Timestamped transcript saved to: {timestamped_transcript_file}")
+                logger.info(f"Transcript length: {len(full_text)} characters")
+                logger.info(f"Processed {len(timestamped_segments)} audio segments")
                 
                 return full_text
             else:
-                logger.error(f"VTT file not created: {vtt_file}")
+                logger.error("No transcription segments were generated")
                 return None
 
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Whisper command failed: {e.stderr}")
-            return None
         except Exception as e:
             logger.error(f"Audio transcription failed: {e}")
             return None

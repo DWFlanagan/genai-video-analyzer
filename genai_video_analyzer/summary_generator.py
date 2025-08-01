@@ -81,15 +81,17 @@ class SummaryGenerator:
         transcript: Optional[str],
         video_path: Path,
         output_dir: Path,
+        audio_segments: Optional[List[Tuple[float, float, str]]] = None,
     ) -> Path:
         """
         Generate a narrative summary using the frame captions and transcript.
 
         Args:
             captions: List of timestamped captions
-            transcript: Audio transcript (optional)
+            transcript: Audio transcript (optional, for backward compatibility)
             video_path: Original video path
             output_dir: Output directory
+            audio_segments: List of timestamped audio segments (preferred over transcript)
 
         Returns:
             Path to the generated summary file
@@ -98,10 +100,11 @@ class SummaryGenerator:
 
         # Check if we have any content to summarize
         has_visual = len(captions) > 0
-        has_audio = transcript is not None and transcript.strip()
+        has_audio = (audio_segments is not None and len(audio_segments) > 0) or (transcript is not None and transcript.strip())
 
         logger.debug(f"Summary generation: has_visual={has_visual}, has_audio={has_audio}")
         logger.debug(f"Captions count: {len(captions)}")
+        logger.debug(f"Audio segments count: {len(audio_segments) if audio_segments else 0}")
         logger.debug(f"Transcript length: {len(transcript) if transcript else 0}")
 
         if not has_visual and not has_audio:
@@ -125,10 +128,19 @@ class SummaryGenerator:
                 time_str = f"{minutes:02d}:{seconds:02d}"
                 prompt_parts.append(f"[{time_str}] {caption}\n")
 
-        # Add transcript if available
+        # Add audio content if available (prefer timestamped segments over plain transcript)
         if has_audio:
-            prompt_parts.append("\n## Audio Transcript:\n")
-            prompt_parts.append(transcript)
+            prompt_parts.append("\n## Audio Content (Timestamped):\n")
+            if audio_segments and len(audio_segments) > 0:
+                # Use timestamped audio segments for better chronological integration
+                for start_time, end_time, text in audio_segments:
+                    minutes = int(start_time // 60)
+                    seconds = int(start_time % 60)
+                    time_str = f"{minutes:02d}:{seconds:02d}"
+                    prompt_parts.append(f"[{time_str}] {text}\n")
+            else:
+                # Fallback to plain transcript if segments not available
+                prompt_parts.append(transcript)
             prompt_parts.append("\n")
 
         # Customize instructions based on available content
@@ -176,14 +188,17 @@ class SummaryGenerator:
             return [
                 "\n## Instructions:\n",
                 "Write a detailed, immersive narrative summary (4-6 paragraphs) that:\n",
-                "- Tells the complete story of what happens in the video\n",
-                "- Weaves together visual scenes and audio content seamlessly\n",
+                "- Tells the complete story of what happens in the video IN STRICT CHRONOLOGICAL ORDER\n",
+                "- ALWAYS proceeds from 0:00 → higher timestamps (0:00, 0:30, 1:00, 1:30, etc.)\n",
+                "- NEVER jumps backward in time - timestamps must always increase\n",
+                "- Start with the earliest events and end with the latest events\n",
+                "- Both visual and audio content are timestamped - use these timestamps to maintain perfect chronological order\n",
+                "- Weaves together visual scenes and audio content seamlessly by timestamp\n",
                 "- Describes the setting, atmosphere, and mood in rich detail\n",
                 "- Characterizes the people involved and their relationships\n",
                 "- Captures the emotional tone and significance of moments\n",
                 "- Includes specific dialogue and conversations when relevant\n",
                 "- Describes actions, gestures, and visual details vividly\n",
-                "- Flows chronologically with smooth transitions between scenes\n",
                 "- Uses timestamps naturally within the narrative (e.g., 'At 0:30, Sarah suddenly...')\n",
                 "- Paints a complete picture that makes the reader feel present in the scene\n",
                 "- Explains the context and significance of what's happening\n",
@@ -193,7 +208,8 @@ class SummaryGenerator:
             return [
                 "\n## Instructions:\n",
                 "Write a detailed, engaging narrative summary (4-6 paragraphs) based on the audio:\n",
-                "- Tells the complete story of what is discussed or happening\n",
+                "- Tells the complete story of what is discussed or happening IN CHRONOLOGICAL ORDER\n",
+                "- STRICTLY follows the timeline from beginning to end\n",
                 "- Captures the tone, emotion, and personality of speakers\n",
                 "- Includes specific dialogue and conversations in detail\n",
                 "- Describes the audio atmosphere (background sounds, music, etc.)\n",
@@ -207,7 +223,8 @@ class SummaryGenerator:
             return [
                 "\n## Instructions:\n",
                 "Write a detailed, vivid narrative summary (4-6 paragraphs) based on the visual content:\n",
-                "- Tells the complete visual story of what happens in the video\n",
+                "- Tells the complete visual story of what happens IN CHRONOLOGICAL ORDER\n",
+                "- STRICTLY follows the timeline from beginning to end\n",
                 "- Describes the setting, lighting, and atmosphere in rich detail\n",
                 "- Characterizes the people, their appearance, and body language\n",
                 "- Captures the mood and emotional tone of each scene\n",
