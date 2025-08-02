@@ -9,10 +9,38 @@ A powerful tool for analyzing VHS videos and generating narrative summaries by c
 - 🎵 **Audio Transcription**: Transcribes speech using Whisper with GPU acceleration
 - 📅 **Combined Timeline**: Merges visual and audio analysis into a chronological timeline
 - 📝 **Narrative Summaries**: Generates engaging story-like summaries using LLMs
+- 🌐 **User-Friendly GUI**: Web-based interface for easy video selection and configuration
 - 🚀 **GPU Acceleration**: Supports CUDA for faster processing
 - 📁 **Organized Output**: Creates dedicated folders for each video's analysis
 
 ## Quick Start
+
+### GUI Interface (Recommended)
+
+```bash
+# Clone the repository
+git clone https://github.com/DWFlanagan/genai-video-analyzer.git
+cd genai-video-analyzer
+
+# Install dependencies
+uv sync
+
+# Start the GUI
+uv run video-analyzer-gui
+```
+
+**Or use the simple launcher scripts:**
+```bash
+# Linux/Mac
+./start_gui.sh
+
+# Windows
+start_gui.bat
+```
+
+Open your web browser to `http://127.0.0.1:5000` for an easy-to-use interface.
+
+### Command Line Interface
 
 ```bash
 # Clone the repository
@@ -105,7 +133,30 @@ uv tool install llm
 
 ## Usage
 
-### Basic Usage
+### GUI Interface
+
+For the easiest experience, use the web-based GUI:
+
+```bash
+# Start the GUI server
+uv run video-analyzer-gui
+
+# Or with custom options
+uv run video-analyzer-gui --host 0.0.0.0 --port 8080
+```
+
+Then open `http://127.0.0.1:5000` in your web browser to:
+- 📹 Select one or multiple video files
+- 📂 Configure output directory
+- ⚙️ Adjust AI models and processing settings
+- 🚀 Start analysis with a single click
+- 📊 Monitor progress in real-time
+
+See [GUI.md](GUI.md) for detailed GUI documentation.
+
+### Command Line Interface
+
+For advanced users and automation:
 
 ```bash
 # Analyze a video with default settings

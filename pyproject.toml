@@ -26,6 +26,7 @@ dependencies = [
     "pillow>=10.0.0",
     "click>=8.1.0",
     "llm-ollama>=0.13.0",
+    "flask>=3.0.0",
     # PyTorch with RTX 5080 support - use uv pip install with --torch-backend=auto
     # "torch", "torchvision", "torchaudio" - installed separately
 ]
@@ -43,6 +44,7 @@ dev = [
 
 [project.scripts]
 video-summarizer = "genai_video_analyzer.main:main"
+video-analyzer-gui = "genai_video_analyzer.gui_launcher:main"
 
 [build-system]
 requires = ["hatchling"]
