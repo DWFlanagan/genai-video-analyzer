@@ -13,7 +13,21 @@ The GenAI Video Analyzer now includes a user-friendly web-based GUI that allows 
 
 ## Quick Start
 
-### Method 1: Using the GUI Launcher (Recommended)
+## Quick Start
+
+### Method 1: Simple Launcher Scripts (Easiest)
+
+```bash
+# Linux/Mac users
+./start_gui.sh
+
+# Windows users
+start_gui.bat
+```
+
+These scripts automatically check dependencies and start the GUI server.
+
+### Method 2: Using the GUI Launcher (Recommended)
 
 ```bash
 # Start the GUI server
@@ -25,14 +39,14 @@ video-analyzer-gui
 
 Then open your web browser to `http://127.0.0.1:5000`
 
-### Method 2: Direct Python Execution
+### Method 3: Direct Python Execution
 
 ```bash
 # Run the GUI module directly
-python genai_video_analyzer/gui.py
+python genai_video_analyzer/gui_standalone.py
 
 # With custom host/port
-python genai_video_analyzer/gui.py --host 0.0.0.0 --port 8080
+python genai_video_analyzer/gui_standalone.py --host 0.0.0.0 --port 8080
 ```
 
 ## Usage

@@ -29,6 +29,15 @@ uv sync
 uv run video-analyzer-gui
 ```
 
+**Or use the simple launcher scripts:**
+```bash
+# Linux/Mac
+./start_gui.sh
+
+# Windows
+start_gui.bat
+```
+
 Open your web browser to `http://127.0.0.1:5000` for an easy-to-use interface.
 
 ### Command Line Interface
