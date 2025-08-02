@@ -154,10 +154,10 @@ class TestIntegration:
             _extract_frames=Mock(return_value=[(15.0, Path("frame1.jpg"))]),
             _caption_frames=Mock(return_value=[(15.0, "Sample caption")]),
             _transcribe_audio=Mock(return_value="Sample transcript"),
-            _generate_summary=Mock(return_value=output_directory / "summary.md"),
+            _generate_summary=Mock(return_value=output_directory / "summary.txt"),
         ):
             analyzer = VideoAnalyzer()
             result = analyzer.analyze_video(sample_video_path, output_directory)
 
             assert result is not None
-            assert result == output_directory / "summary.md"
+            assert result == output_directory / "summary.txt"

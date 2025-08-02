@@ -96,7 +96,7 @@ class SummaryGenerator:
         Returns:
             Path to the generated summary file
         """
-        summary_file = output_dir / "video_summary.md"
+        summary_file = output_dir / "video_summary.txt"
 
         # Check if we have any content to summarize
         has_visual = len(captions) > 0
