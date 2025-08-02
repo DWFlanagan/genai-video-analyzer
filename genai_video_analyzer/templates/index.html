@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenAI Video Analyzer - GUI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            border: 1px solid #e1e5e9;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        
+        .section h2 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .file-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .file-browser {
+            border: 2px dashed #ced4da;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-browser:hover {
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .selected-files {
+            margin-top: 15px;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin-bottom: 8px;
+        }
+        
+        .file-item .name {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .file-item .remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .option-group {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #495057;
+            font-weight: 500;
+        }
+        
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .process-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+        
+        .process-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .status-section {
+            margin-top: 30px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 GenAI Video Analyzer</h1>
+            <p>Analyze your videos with AI-powered scene detection, frame captioning, and audio transcription</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>📹 Select Videos</h2>
+                <div class="file-selector">
+                    <div class="file-browser" onclick="document.getElementById('fileInput').click()">
+                        <div style="font-size: 3em; margin-bottom: 10px;">📁</div>
+                        <p><strong>Click to select video files</strong></p>
+                        <p style="color: #6c757d; margin-top: 5px;">Supported formats: MP4, AVI, MKV, MOV, WMV, FLV, WebM</p>
+                    </div>
+                    <input type="file" id="fileInput" multiple accept=".mp4,.avi,.mkv,.mov,.wmv,.flv,.webm">
+                    <div class="selected-files" id="selectedFiles"></div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>📂 Output Directory</h2>
+                <div class="form-group">
+                    <label for="outputDir">Output Directory (optional)</label>
+                    <input type="text" id="outputDir" placeholder="Leave empty to use video's directory">
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>⚙️ Analysis Options</h2>
+                <div class="options-grid">
+                    <div class="option-group">
+                        <h3>🤖 AI Models</h3>
+                        <div class="form-group">
+                            <label for="llmModel">Frame Captioning Model</label>
+                            <select id="llmModel">
+                                <option value="llava:13b">llava:13b (recommended)</option>
+                                <option value="llava:7b">llava:7b (faster)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="summaryModel">Summary Generation Model</label>
+                            <select id="summaryModel">
+                                <option value="gemma3:12b">gemma3:12b (recommended)</option>
+                                <option value="gemma3:8b">gemma3:8b (faster)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="option-group">
+                        <h3>🔧 Processing Settings</h3>
+                        <div class="form-group">
+                            <label for="threshold">Scene Detection Threshold</label>
+                            <input type="number" id="threshold" value="50.0" min="10" max="100" step="5">
+                            <small style="color: #6c757d;">Higher values = fewer scenes detected</small>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="noAudio">
+                            <label for="noAudio">Skip audio transcription</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="noFrames">
+                            <label for="noFrames">Skip frame analysis</label>
+                        </div>
+                        
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="verbose">
+                            <label for="verbose">Verbose logging</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section" style="text-align: center;">
+                <button class="process-btn" id="processBtn" onclick="startProcessing()">
+                    🚀 Start Analysis
+                </button>
+                <p style="margin-top: 15px; color: #6c757d;">
+                    Note: This demo shows the GUI interface. Full video processing requires the complete dependency installation.
+                </p>
+            </div>
+            
+            <div class="section status-section hidden" id="statusSection">
+                <h2>📊 Processing Status</h2>
+                <div id="statusText">Ready</div>
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFiles = [];
+        
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            selectedFiles = [...selectedFiles, ...files];
+            updateSelectedFiles();
+        });
+        
+        function updateSelectedFiles() {
+            const container = document.getElementById('selectedFiles');
+            container.innerHTML = '';
+            
+            if (selectedFiles.length === 0) {
+                container.innerHTML = '<p style="color: #6c757d; text-align: center; padding: 20px;">No videos selected</p>';
+                return;
+            }
+            
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div>
+                        <div class="name">${file.name}</div>
+                        <div style="font-size: 0.8em; color: #6c757d;">${formatFileSize(file.size)}</div>
+                    </div>
+                    <button class="remove" onclick="removeFile(${index})">Remove</button>
+                `;
+                container.appendChild(fileItem);
+            });
+        }
+        
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updateSelectedFiles();
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        async function startProcessing() {
+            if (selectedFiles.length === 0) {
+                alert('Please select at least one video file');
+                return;
+            }
+            
+            const options = {
+                llm_model: document.getElementById('llmModel').value,
+                summary_model: document.getElementById('summaryModel').value,
+                threshold: parseFloat(document.getElementById('threshold').value),
+                no_audio: document.getElementById('noAudio').checked,
+                no_frames: document.getElementById('noFrames').checked,
+                verbose: document.getElementById('verbose').checked
+            };
+            
+            document.getElementById('processBtn').disabled = true;
+            document.getElementById('processBtn').textContent = '⏳ Processing...';
+            document.getElementById('statusSection').classList.remove('hidden');
+            document.getElementById('statusText').textContent = 'Processing started with selected options...';
+            
+            // Demo mode - show what would happen
+            setTimeout(() => {
+                document.getElementById('statusText').innerHTML = `
+                    <strong>Demo Mode - Configuration Summary:</strong><br>
+                    Videos: ${selectedFiles.map(f => f.name).join(', ')}<br>
+                    LLM Model: ${options.llm_model}<br>
+                    Summary Model: ${options.summary_model}<br>
+                    Threshold: ${options.threshold}<br>
+                    Skip Audio: ${options.no_audio ? 'Yes' : 'No'}<br>
+                    Skip Frames: ${options.no_frames ? 'Yes' : 'No'}<br>
+                    Verbose: ${options.verbose ? 'Yes' : 'No'}<br><br>
+                    <em>Install dependencies to enable full processing functionality.</em>
+                `;
+                document.getElementById('processBtn').disabled = false;
+                document.getElementById('processBtn').textContent = '🚀 Start Analysis';
+            }, 2000);
+        }
+        
+        updateSelectedFiles();
+    </script>
+</body>
+</html>
